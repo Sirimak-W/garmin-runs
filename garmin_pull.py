@@ -48,6 +48,11 @@ def authenticate() -> Garmin:
     return client
 
 
+def _r(v, n=1):
+    """ปัดเศษถ้าเป็นตัวเลข ไม่งั้นคืน None (กันค่า field ที่ Garmin ไม่ได้บันทึก)."""
+    return round(v, n) if isinstance(v, (int, float)) else None
+
+
 def to_run(a: dict) -> dict:
     """แปลง activity ดิบเป็น record แบน 1 แถวต่อ 1 การวิ่ง."""
     dist_km = (a.get("distance", 0) or 0) / 1000
@@ -60,6 +65,22 @@ def to_run(a: dict) -> dict:
         "pace_min_km": pace,
         "avg_hr": a.get("averageHR"),
         "max_hr": a.get("maxHR"),
+        # cadence (ก้าว/นาที)
+        "avg_cadence": _r(a.get("averageRunningCadenceInStepsPerMinute"), 0),
+        "max_cadence": _r(a.get("maxRunningCadenceInStepsPerMinute"), 0),
+        # ฟิตเนส: VO2max + training effect
+        "vo2max": _r(a.get("vO2MaxValue"), 1),
+        "aerobic_te": _r(a.get("aerobicTrainingEffect"), 1),
+        "anaerobic_te": _r(a.get("anaerobicTrainingEffect"), 1),
+        # พลัง + ความเร็ว (Garmin เก็บ speed เป็น m/s → แปลงเป็น km/h)
+        "avg_power": _r(a.get("avgPower"), 0),
+        "max_power": _r(a.get("maxPower"), 0),
+        "avg_speed_kmh": _r((a.get("averageSpeed") or 0) * 3.6, 2) if a.get("averageSpeed") else None,
+        "max_speed_kmh": _r((a.get("maxSpeed") or 0) * 3.6, 2) if a.get("maxSpeed") else None,
+        # running dynamics (ฟอร์มการวิ่ง)
+        "stride_length_cm": _r(a.get("avgStrideLength"), 1),
+        "ground_contact_ms": _r(a.get("avgGroundContactTime"), 0),
+        "vertical_oscillation_cm": _r(a.get("avgVerticalOscillation"), 1),
         "elevation_gain_m": round(a.get("elevationGain", 0) or 0, 1),
         "calories": a.get("calories"),
         "activity_name": a.get("activityName", "Run"),
