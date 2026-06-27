@@ -65,6 +65,12 @@ def to_run(a: dict) -> dict:
         "pace_min_km": pace,
         "avg_hr": a.get("averageHR"),
         "max_hr": a.get("maxHR"),
+        # %เวลาในแต่ละโซน HR (เติมค่าจริงใน pull(); default None เพื่อให้คอลัมน์ CSV คงที่)
+        "hr_z1_pct": None,
+        "hr_z2_pct": None,
+        "hr_z3_pct": None,
+        "hr_z4_pct": None,
+        "hr_z5_pct": None,
         # cadence (ก้าว/นาที)
         "avg_cadence": _r(a.get("averageRunningCadenceInStepsPerMinute"), 0),
         "max_cadence": _r(a.get("maxRunningCadenceInStepsPerMinute"), 0),
@@ -87,6 +93,29 @@ def to_run(a: dict) -> dict:
     }
 
 
+def hr_zones(client, activity_id) -> dict:
+    """ดึง %เวลาในแต่ละโซน HR (Z1–Z5) ของกิจกรรมหนึ่ง.
+
+    Garmin ไม่ส่งโซน HR มากับ summary ต้องเรียกต่อกิจกรรม.
+    คืน {} ถ้าไม่มีข้อมูล/พลาด เพื่อให้ใช้ค่า default จาก to_run().
+    """
+    if not activity_id:
+        return {}
+    try:
+        zones = client.get_activity_hr_in_timezones(activity_id)
+    except Exception:
+        return {}
+    total = sum((z.get("secsInZone") or 0) for z in zones)
+    if total <= 0:
+        return {}
+    out = {}
+    for z in zones:
+        n = z.get("zoneNumber")
+        if n in (1, 2, 3, 4, 5):
+            out[f"hr_z{n}_pct"] = round((z.get("secsInZone") or 0) / total * 100, 1)
+    return out
+
+
 def pull(days: int, start_arg: str | None, end_arg: str | None):
     """ดึงข้อมูลตามช่วงวัน: ใช้ start/end ถ้ามี ไม่งั้นใช้ days ย้อนหลัง."""
     if start_arg and end_arg:
@@ -97,7 +126,12 @@ def pull(days: int, start_arg: str | None, end_arg: str | None):
 
     client = authenticate()
     activities = client.get_activities_by_date(start, end, activitytype="running")
-    runs = [to_run(a) for a in activities if (a.get("distance") or 0) > 0]
+    runs = []
+    for a in activities:
+        if (a.get("distance") or 0) > 0:
+            rec = to_run(a)
+            rec.update(hr_zones(client, a.get("activityId")))
+            runs.append(rec)
     runs.sort(key=lambda r: r["date"])
     return runs, start, end
 
