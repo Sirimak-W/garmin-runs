@@ -1,0 +1,68 @@
+[
+  {
+    "date": "2026-06-02",
+    "distance_km": 5.0,
+    "duration_min": 37.5,
+    "pace_min_km": 7.5,
+    "avg_hr": 152,
+    "max_hr": 168,
+    "elevation_gain_m": 25.0,
+    "calories": 320,
+    "activity_name": "Morning Run"
+  },
+  {
+    "date": "2026-06-05",
+    "distance_km": 6.2,
+    "duration_min": 45.0,
+    "pace_min_km": 7.258,
+    "avg_hr": 150,
+    "max_hr": 165,
+    "elevation_gain_m": 30.0,
+    "calories": 400,
+    "activity_name": "Easy Run"
+  },
+  {
+    "date": "2026-06-09",
+    "distance_km": 8.0,
+    "duration_min": 60.0,
+    "pace_min_km": 7.5,
+    "avg_hr": 155,
+    "max_hr": 172,
+    "elevation_gain_m": 45.0,
+    "calories": 520,
+    "activity_name": "Long Run"
+  },
+  {
+    "date": "2026-06-14",
+    "distance_km": 5.5,
+    "duration_min": 39.0,
+    "pace_min_km": 7.091,
+    "avg_hr": 148,
+    "max_hr": 160,
+    "elevation_gain_m": 20.0,
+    "calories": 350,
+    "activity_name": "Tempo Run"
+  },
+  {
+    "date": "2026-06-18",
+    "distance_km": 10.0,
+    "duration_min": 72.0,
+    "pace_min_km": 7.2,
+    "avg_hr": 158,
+    "max_hr": 175,
+    "elevation_gain_m": 60.0,
+    "calories": 650,
+    "activity_name": "Long Run"
+  },
+  {
+    "date": "2026-06-23",
+    "distance_km": 4.0,
+    "duration_min": 28.0,
+    "pace_min_km": 7.0,
+    "avg_hr": 145,
+    "max_hr": 158,
+    "elevation_gain_m": 15.0,
+    "calories": 260,
+    "activity_name": "Recovery Run"
+  }
+]

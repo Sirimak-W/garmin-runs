@@ -1,0 +1,57 @@
+name: Pull Garmin Runs
+
+# รันอัตโนมัติ + รันมือ (เลือกช่วงวันได้)
+on:
+  schedule:
+    - cron: "0 1 * * *"   # ทุกวัน 01:00 UTC (= 08:00 ไทย)
+  workflow_dispatch:       # ปุ่มรันมือใน GitHub UI
+    inputs:
+      days:
+        description: "จำนวนวันย้อนหลัง (เว้นว่างถ้าใช้ start/end)"
+        required: false
+        default: "120"
+      start:
+        description: "วันเริ่ม YYYY-MM-DD (ทางเลือก)"
+        required: false
+      end:
+        description: "วันสิ้นสุด YYYY-MM-DD (ทางเลือก)"
+        required: false
+
+permissions:
+  contents: write   # ให้ commit ไฟล์ผลลัพธ์กลับเข้า repo ได้
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install garminconnect pandas
+
+      - name: Pull Garmin data
+        env:
+          GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
+          GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
+          GARMIN_TOKEN: ${{ secrets.GARMIN_TOKEN }}
+        run: |
+          # ถ้ารันมือและกรอก start+end จะใช้ช่วงวันนั้น ไม่งั้นใช้ days
+          if [ -n "${{ github.event.inputs.start }}" ] && [ -n "${{ github.event.inputs.end }}" ]; then
+            python garmin_pull.py --start "${{ github.event.inputs.start }}" --end "${{ github.event.inputs.end }}"
+          else
+            python garmin_pull.py --days "${{ github.event.inputs.days || '120' }}"
+          fi
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add docs/runs.csv docs/runs.json docs/meta.json
+          git commit -m "Update Garmin data [skip ci]" || echo "no changes"
+          git push

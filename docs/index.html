@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Garmin Runs</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0E1116; --panel:#161B22; --panel2:#1C232E; --line:#27313D;
+    --text:#E6EDF3; --dim:#8B98A6; --accent:#00E08A; --warn:#FF6B57;
+    --hr:#FFB347; --vol:#5BA4FF;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,system-ui,sans-serif;
+    padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);}
+  .wrap{max-width:760px;margin:0 auto;padding-top:18px}
+  h1{font-size:24px;font-weight:600;margin:2px 0 0}
+  .eyebrow{color:var(--dim);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+
+  /* แถบบอกช่วงวันที่ของข้อมูล */
+  .databar{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:14px;margin:16px 0;display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between}
+  .databar .item{min-width:90px}
+  .databar .k{color:var(--dim);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+  .databar .v{font-size:16px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
+  .databar .v.range{color:var(--accent)}
+
+  .tabs{display:flex;gap:8px;margin:14px 0}
+  .tab{flex:1;background:transparent;color:var(--dim);border:1px solid transparent;
+    border-radius:10px;padding:10px;font-size:14px;font-weight:500;cursor:pointer}
+  .tab.on{background:var(--panel2);color:var(--text);border-color:var(--line)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+  .card .lbl{color:var(--dim);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+
+  .btn{background:var(--accent);color:var(--bg);border:none;border-radius:10px;
+    padding:11px 18px;font-weight:600;font-size:14px;cursor:pointer;width:100%}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;padding:9px 8px;border-bottom:2px solid var(--line);
+    color:var(--dim);font-weight:500;white-space:nowrap;font-size:11px}
+  td{padding:8px;border-bottom:1px solid var(--panel2);font-variant-numeric:tabular-nums}
+  .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .green{color:var(--accent)}
+
+  .err{background:rgba(255,107,87,.12);border:1px solid var(--warn);color:var(--warn);
+    border-radius:10px;padding:12px;font-size:13px}
+  .foot{text-align:center;color:var(--dim);font-size:11px;margin:14px 0;font-family:monospace}
+  canvas{max-height:240px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Garmin · Running</div>
+  <h1>ผลการวิ่ง</h1>
+
+  <!-- แถบบอกว่าข้อมูลนี้เป็นของช่วงวันไหน + ดึงเมื่อไหร่ -->
+  <div class="databar" id="databar">
+    <div class="item"><div class="k">ข้อมูลช่วง</div><div class="v range" id="m-range">—</div></div>
+    <div class="item"><div class="k">ดึงล่าสุด</div><div class="v" id="m-pulled">—</div></div>
+    <div class="item"><div class="k">จำนวน</div><div class="v" id="m-count">—</div></div>
+    <div class="item"><div class="k">ระยะรวม</div><div class="v" id="m-km">—</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" id="tab-table" onclick="setTab('table')">ตาราง</button>
+    <button class="tab" id="tab-chart" onclick="setTab('chart')">กราฟ</button>
+  </div>
+
+  <div id="view-table">
+    <div class="card">
+      <button class="btn" onclick="downloadCsv()">⬇︎ โหลด CSV</button>
+    </div>
+    <div class="card">
+      <div class="scroll">
+        <table id="tbl">
+          <thead><tr>
+            <th>วันที่</th><th>กิจกรรม</th><th>ระยะ</th><th>เวลา</th>
+            <th>Pace</th><th>HR</th><th>Elev</th><th>Cal</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-chart" style="display:none">
+    <div class="card"><div class="lbl">Pace เทียบเป้า 7:30/km</div><canvas id="paceChart"></canvas></div>
+    <div class="card"><div class="lbl">Volume รายสัปดาห์</div><canvas id="volChart"></canvas></div>
+    <div class="card"><div class="lbl">HR เทียบ Pace</div><canvas id="hrChart"></canvas></div>
+  </div>
+
+  <div id="errbox"></div>
+  <div class="foot">GitHub Actions · อัปเดตอัตโนมัติทุกวัน</div>
+</div>
+
+<script>
+const GOAL_PACE = 7.5;
+let RUNS = [];
+
+function fmtPace(p){
+  if(p==null||isNaN(p)) return "—";
+  const m=Math.floor(p), s=Math.round((p-m)*60);
+  return `${m}:${String(s).padStart(2,"0")}`;
+}
+function thaiDate(iso){
+  // 2026-06-18 -> 18 มิ.ย.
+  const mo=["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+  if(!iso) return "—";
+  const [y,m,d]=iso.split("-");
+  return `${+d} ${mo[+m-1]}`;
+}
+
+async function load(){
+  try{
+    // กัน cache ของ iPhone Safari ด้วย query timestamp
+    const bust = "?t="+Date.now();
+    const [runs, meta] = await Promise.all([
+      fetch("runs.json"+bust).then(r=>r.json()),
+      fetch("meta.json"+bust).then(r=>r.json()).catch(()=>null),
+    ]);
+    RUNS = runs.filter(r=>r.distance_km>0 && r.pace_min_km)
+               .sort((a,b)=>a.date.localeCompare(b.date));
+    renderMeta(meta);
+    renderTable();
+    renderCharts();
+  }catch(e){
+    document.getElementById("errbox").innerHTML =
+      `<div class="err">โหลดข้อมูลไม่ได้: ${e.message}<br>ตรวจว่า GitHub Actions รันสำเร็จและมีไฟล์ runs.json แล้ว</div>`;
+  }
+}
+
+function renderMeta(meta){
+  if(meta){
+    document.getElementById("m-range").textContent =
+      `${thaiDate(meta.range_start)} – ${thaiDate(meta.range_end)}`;
+    // pulled_at_utc -> เวลาไทย
+    const dt = new Date(meta.pulled_at_utc);
+    document.getElementById("m-pulled").textContent =
+      dt.toLocaleString("th-TH",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+    document.getElementById("m-count").textContent = meta.count;
+    document.getElementById("m-km").textContent = meta.total_km+" km";
+  } else if(RUNS.length){
+    document.getElementById("m-range").textContent =
+      `${thaiDate(RUNS[0].date)} – ${thaiDate(RUNS[RUNS.length-1].date)}`;
+    document.getElementById("m-count").textContent = RUNS.length;
+    document.getElementById("m-km").textContent =
+      RUNS.reduce((a,r)=>a+r.distance_km,0).toFixed(1)+" km";
+  }
+}
+
+function renderTable(){
+  const tb=document.getElementById("tbody");
+  tb.innerHTML = RUNS.map(r=>`<tr>
+    <td>${thaiDate(r.date)}</td>
+    <td>${r.activity_name||"Run"}</td>
+    <td>${r.distance_km}</td>
+    <td>${r.duration_min}</td>
+    <td class="${r.pace_min_km<=GOAL_PACE?'green':''}">${fmtPace(r.pace_min_km)}</td>
+    <td>${r.avg_hr??"—"}</td>
+    <td>${r.elevation_gain_m??"—"}</td>
+    <td>${r.calories??"—"}</td>
+  </tr>`).join("");
+}
+
+let charts=[];
+function renderCharts(){
+  charts.forEach(c=>c.destroy()); charts=[];
+  const grid="#27313D", dim="#8B98A6";
+  const co={responsive:true,plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:dim,font:{size:10}},grid:{color:grid}},
+            y:{ticks:{color:dim,font:{size:10}},grid:{color:grid}}}};
+
+  // pace (แกน y กลับด้าน เพราะ pace ต่ำ = เร็ว = ดี)
+  charts.push(new Chart(document.getElementById("paceChart"),{
+    type:"line",
+    data:{labels:RUNS.map(r=>thaiDate(r.date)),
+      datasets:[
+        {data:RUNS.map(r=>r.pace_min_km),borderColor:"#E6EDF3",
+         backgroundColor:"#E6EDF3",tension:.3,pointRadius:3},
+        {data:RUNS.map(()=>GOAL_PACE),borderColor:"#00E08A",
+         borderDash:[5,4],pointRadius:0}
+      ]},
+    options:{...co,scales:{...co.scales,y:{...co.scales.y,reverse:true,
+      ticks:{...co.scales.y.ticks,callback:v=>fmtPace(v)}}}}
+  }));
+
+  // volume รายสัปดาห์
+  const wk={};
+  RUNS.forEach(r=>{
+    const d=new Date(r.date), oj=new Date(d.getFullYear(),0,1);
+    const w="W"+Math.ceil(((d-oj)/864e5+oj.getDay()+1)/7);
+    wk[w]=(wk[w]||0)+r.distance_km;
+  });
+  charts.push(new Chart(document.getElementById("volChart"),{
+    type:"bar",
+    data:{labels:Object.keys(wk),
+      datasets:[{data:Object.values(wk).map(v=>+v.toFixed(1)),
+        backgroundColor:"#5BA4FF",borderRadius:4}]},
+    options:co
+  }));
+
+  // HR เทียบ pace
+  charts.push(new Chart(document.getElementById("hrChart"),{
+    type:"scatter",
+    data:{datasets:[{
+      data:RUNS.filter(r=>r.avg_hr).map(r=>({x:r.pace_min_km,y:r.avg_hr})),
+      backgroundColor:"#FFB347"}]},
+    options:{...co,scales:{
+      x:{...co.scales.x,reverse:true,ticks:{...co.scales.x.ticks,callback:v=>fmtPace(v)}},
+      y:co.scales.y}}
+  }));
+}
+
+function setTab(t){
+  document.getElementById("view-table").style.display = t==="table"?"block":"none";
+  document.getElementById("view-chart").style.display = t==="chart"?"block":"none";
+  document.getElementById("tab-table").classList.toggle("on",t==="table");
+  document.getElementById("tab-chart").classList.toggle("on",t==="chart");
+}
+
+function downloadCsv(){
+  const cols=["date","distance_km","duration_min","pace_min_km","avg_hr","max_hr","elevation_gain_m","calories","activity_name"];
+  const rows=RUNS.map(r=>cols.map(c=>{
+    const v=r[c]; if(v==null) return "";
+    return String(v).includes(",")?`"${v}"`:v;
+  }).join(","));
+  const csv=[cols.join(","),...rows].join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=`garmin_runs_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+load();
+</script>
+</body>
+</html>
