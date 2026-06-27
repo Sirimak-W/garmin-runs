@@ -4,7 +4,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Garmin Runs</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root{
     --bg:#0E1116; --panel:#161B22; --panel2:#1C232E; --line:#27313D;
@@ -64,7 +63,8 @@
   .err{background:rgba(255,107,87,.12);border:1px solid var(--warn);color:var(--warn);
     border-radius:10px;padding:12px;font-size:13px}
   .foot{text-align:center;color:var(--dim);font-size:11px;margin:14px 0;font-family:monospace}
-  canvas{max-height:240px}
+  pre{margin:0;white-space:pre-wrap;word-break:break-word;font-size:12px;
+    line-height:1.5;color:var(--text);font-family:ui-monospace,Menlo,monospace}
 </style>
 </head>
 <body>
@@ -93,7 +93,7 @@
 
   <div class="tabs">
     <button class="tab on" id="tab-table" onclick="setTab('table')">ตาราง</button>
-    <button class="tab" id="tab-chart" onclick="setTab('chart')">กราฟ</button>
+    <button class="tab" id="tab-json" onclick="setTab('json')">JSON</button>
   </div>
 
   <div id="view-table">
@@ -108,7 +108,6 @@
     </div>
     <div class="card">
       <button class="btn" onclick="downloadCsv()">⬇︎ โหลด CSV (ตามช่วงที่เลือก)</button>
-      <button class="btn" style="margin-top:8px" onclick="downloadJson()">⬇︎ โหลด JSON (ตามช่วงที่เลือก)</button>
     </div>
     <div class="card">
       <div class="scroll">
@@ -126,12 +125,11 @@
     </div>
   </div>
 
-  <div id="view-chart" style="display:none">
-    <div class="card"><div class="lbl">Pace เทียบเป้า 6:00/km (Sub-60 10K)</div><canvas id="paceChart"></canvas></div>
-    <div class="card"><div class="lbl">VO2max (แนวโน้มฟิตเนส)</div><canvas id="vo2Chart"></canvas></div>
-    <div class="card"><div class="lbl">Volume รายสัปดาห์</div><canvas id="volChart"></canvas></div>
-    <div class="card"><div class="lbl">HR เทียบ Pace</div><canvas id="hrChart"></canvas></div>
-    <div class="card"><div class="lbl">การกระจายโซน HR (เฉลี่ย %)</div><canvas id="zoneChart"></canvas></div>
+  <div id="view-json" style="display:none">
+    <div class="card">
+      <div class="lbl">JSON (ตามช่วงที่เลือก)</div>
+      <div class="scroll"><pre id="jsonOut"></pre></div>
+    </div>
   </div>
 
   <div id="errbox"></div>
@@ -171,7 +169,7 @@ function view(){
   v.sort((a,b)=> state.sort==="asc" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
   return v;
 }
-function rerender(){ renderSummary(); renderTable(); renderAnalysis(); renderCharts(); }
+function rerender(){ renderSummary(); renderTable(); renderAnalysis(); renderJson(); }
 
 async function load(){
   try{
@@ -286,88 +284,16 @@ function renderTable(){
   </tr>`).join("");
 }
 
-let charts=[];
-function renderCharts(){
-  const v = view();
-  charts.forEach(c=>c.destroy()); charts=[];
-  const grid="#27313D", dim="#8B98A6";
-  const co={responsive:true,plugins:{legend:{display:false}},
-    scales:{x:{ticks:{color:dim,font:{size:10}},grid:{color:grid}},
-            y:{ticks:{color:dim,font:{size:10}},grid:{color:grid}}}};
-
-  // เรียงตามวันสำหรับกราฟเสมอ (ไม่ขึ้นกับ sort ของตาราง)
-  const byDate = v.slice().sort((a,b)=>a.date.localeCompare(b.date));
-
-  // pace (แกน y กลับด้าน เพราะ pace ต่ำ = เร็ว = ดี)
-  charts.push(new Chart(document.getElementById("paceChart"),{
-    type:"line",
-    data:{labels:byDate.map(r=>thaiDate(r.date)),
-      datasets:[
-        {data:byDate.map(r=>r.pace_min_km),borderColor:"#E6EDF3",
-         backgroundColor:"#E6EDF3",tension:.3,pointRadius:3},
-        {data:byDate.map(()=>GOAL_PACE),borderColor:"#00E08A",
-         borderDash:[5,4],pointRadius:0}
-      ]},
-    options:{...co,scales:{...co.scales,y:{...co.scales.y,reverse:true,
-      ticks:{...co.scales.y.ticks,callback:v=>fmtPace(v)}}}}
-  }));
-
-  // VO2max (แนวโน้มฟิตเนส)
-  const vo2 = byDate.filter(r=>r.vo2max!=null);
-  charts.push(new Chart(document.getElementById("vo2Chart"),{
-    type:"line",
-    data:{labels:vo2.map(r=>thaiDate(r.date)),
-      datasets:[{data:vo2.map(r=>r.vo2max),borderColor:"#00E08A",
-        backgroundColor:"#00E08A",tension:.3,pointRadius:3}]},
-    options:co
-  }));
-
-  // volume รายสัปดาห์
-  const wk={};
-  byDate.forEach(r=>{
-    const d=new Date(r.date), oj=new Date(d.getFullYear(),0,1);
-    const w="W"+Math.ceil(((d-oj)/864e5+oj.getDay()+1)/7);
-    wk[w]=(wk[w]||0)+r.distance_km;
-  });
-  charts.push(new Chart(document.getElementById("volChart"),{
-    type:"bar",
-    data:{labels:Object.keys(wk),
-      datasets:[{data:Object.values(wk).map(v=>+v.toFixed(1)),
-        backgroundColor:"#5BA4FF",borderRadius:4}]},
-    options:co
-  }));
-
-  // HR เทียบ pace
-  charts.push(new Chart(document.getElementById("hrChart"),{
-    type:"scatter",
-    data:{datasets:[{
-      data:byDate.filter(r=>r.avg_hr).map(r=>({x:r.pace_min_km,y:r.avg_hr})),
-      backgroundColor:"#FFB347"}]},
-    options:{...co,scales:{
-      x:{...co.scales.x,reverse:true,ticks:{...co.scales.x.ticks,callback:v=>fmtPace(v)}},
-      y:co.scales.y}}
-  }));
-
-  // การกระจายโซน HR เฉลี่ย (Z1–Z5)
-  const zr = byDate.filter(r=>r.hr_z1_pct!=null);
-  const avgz = [1,2,3,4,5].map(n=>{
-    const arr = zr.map(r=>r["hr_z"+n+"_pct"]).filter(x=>x!=null);
-    return arr.length ? +(arr.reduce((s,x)=>s+x,0)/arr.length).toFixed(1) : 0;
-  });
-  charts.push(new Chart(document.getElementById("zoneChart"),{
-    type:"doughnut",
-    data:{labels:["Z1","Z2","Z3","Z4","Z5"],
-      datasets:[{data:avgz,
-        backgroundColor:["#5BA4FF","#00E08A","#FFD93D","#FF9F43","#FF6B57"]}]},
-    options:{responsive:true,plugins:{legend:{position:"right",labels:{color:dim,font:{size:11}}}}}
-  }));
+// แสดงข้อมูลที่กำลังแสดง (ตามตัวกรอง + การเรียง) เป็น JSON
+function renderJson(){
+  document.getElementById("jsonOut").textContent = JSON.stringify(view(), null, 2);
 }
 
 function setTab(t){
   document.getElementById("view-table").style.display = t==="table"?"block":"none";
-  document.getElementById("view-chart").style.display = t==="chart"?"block":"none";
+  document.getElementById("view-json").style.display  = t==="json"?"block":"none";
   document.getElementById("tab-table").classList.toggle("on",t==="table");
-  document.getElementById("tab-chart").classList.toggle("on",t==="chart");
+  document.getElementById("tab-json").classList.toggle("on",t==="json");
 }
 
 function downloadCsv(){
@@ -386,16 +312,6 @@ function downloadCsv(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
   a.href=url; a.download=`garmin_runs_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
-}
-
-function downloadJson(){
-  const json=JSON.stringify(view(),null,2);
-  const blob=new Blob([json],{type:"application/json;charset=utf-8;"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url; a.download=`garmin_runs_${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
 }
