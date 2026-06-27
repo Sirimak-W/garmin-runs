@@ -139,6 +139,7 @@
 
 <script>
 const GOAL_PACE = 6.0;            // เป้า 10K Sub-60 = 6:00/km
+const MIN_KM = 3;                 // วิเคราะห์เฉพาะวิ่งจริง ≥3km (ตัด lap วอร์ม/คูลดาวน์)
 let RUNS = [];                    // ข้อมูลทั้งหมด (เรียงวันที่ขึ้น)
 let state = {from:null, to:null, sort:"asc"};
 
@@ -169,7 +170,7 @@ function view(){
   v.sort((a,b)=> state.sort==="asc" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
   return v;
 }
-function rerender(){ renderTable(); renderAnalysis(); renderCharts(); }
+function rerender(){ renderSummary(); renderTable(); renderAnalysis(); renderCharts(); }
 
 async function load(){
   try{
@@ -213,39 +214,43 @@ function toggleSort(){
 
 function renderMeta(meta){
   if(meta){
-    document.getElementById("m-range").textContent =
-      `${thaiDate(meta.range_start)} – ${thaiDate(meta.range_end)}`;
-    // pulled_at_utc -> เวลาไทย
+    // pulled_at_utc -> เวลาไทย (ค่านี้ไม่ขึ้นกับตัวกรอง)
     const dt = new Date(meta.pulled_at_utc);
     document.getElementById("m-pulled").textContent =
       dt.toLocaleString("th-TH",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
-    document.getElementById("m-count").textContent = meta.count;
-    document.getElementById("m-km").textContent = meta.total_km+" km";
-  } else if(RUNS.length){
-    document.getElementById("m-range").textContent =
-      `${thaiDate(RUNS[0].date)} – ${thaiDate(RUNS[RUNS.length-1].date)}`;
-    document.getElementById("m-count").textContent = RUNS.length;
-    document.getElementById("m-km").textContent =
-      RUNS.reduce((a,r)=>a+r.distance_km,0).toFixed(1)+" km";
   }
+}
+
+// ช่วง/จำนวน/ระยะรวม สะท้อนข้อมูลที่กำลังแสดง (ตามตัวกรองวันที่)
+function renderSummary(){
+  const v = view();
+  const range=document.getElementById("m-range");
+  const count=document.getElementById("m-count");
+  const km=document.getElementById("m-km");
+  if(!v.length){ range.textContent="—"; count.textContent="0"; km.textContent="0 km"; return; }
+  const lo=v.reduce((a,r)=>r.date<a?r.date:a, v[0].date);
+  const hi=v.reduce((a,r)=>r.date>a?r.date:a, v[0].date);
+  range.textContent = `${thaiDate(lo)} – ${thaiDate(hi)}`;
+  count.textContent = v.length;
+  km.textContent = v.reduce((a,r)=>a+r.distance_km,0).toFixed(1)+" km";
 }
 
 // วิเคราะห์ความคืบหน้าสู่เป้า 10K Sub-60 จากข้อมูลที่กำลังแสดง
 function renderAnalysis(){
-  const v = view();
-  const paces = v.filter(r=>r.pace_min_km).map(r=>r.pace_min_km);
+  // นับเฉพาะการวิ่งจริง ≥3km ไม่เอา lap วอร์ม/คูลดาวน์สั้นๆ มาปนการประเมิน 10K
+  const real = view().filter(r=>r.pace_min_km && r.distance_km>=MIN_KM);
+  const paces = real.map(r=>r.pace_min_km);
   const fast  = paces.length ? Math.min(...paces) : null;
-  const hit   = v.filter(r=>r.pace_min_km && r.pace_min_km<=GOAL_PACE).length;
+  const hit   = real.filter(r=>r.pace_min_km<=GOAL_PACE).length;
 
   // pace เฉลี่ยจาก 5 รอบล่าสุด -> ประเมินเวลา 10K = pace*10
-  const recent = v.filter(r=>r.pace_min_km)
-                  .sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  const recent = real.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
   const avg = recent.length ? recent.reduce((s,r)=>s+r.pace_min_km,0)/recent.length : null;
   const est = avg!=null ? avg*10 : null;
 
   document.getElementById("a-est").textContent  = est!=null ? fmtMMSS(est) : "—";
   document.getElementById("a-fast").textContent = fast!=null ? fmtPace(fast)+" /km" : "—";
-  document.getElementById("a-hit").textContent  = `${hit}/${v.length}`;
+  document.getElementById("a-hit").textContent  = `${hit}/${real.length}`;
 
   const st = document.getElementById("a-status");
   if(est==null){ st.textContent="—"; st.className="v"; }
