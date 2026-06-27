@@ -108,6 +108,7 @@
     </div>
     <div class="card">
       <button class="btn" onclick="downloadCsv()">⬇︎ โหลด CSV (ตามช่วงที่เลือก)</button>
+      <button class="btn" style="margin-top:8px" onclick="downloadJson()">⬇︎ โหลด JSON (ตามช่วงที่เลือก)</button>
     </div>
     <div class="card">
       <div class="scroll">
@@ -385,6 +386,16 @@ function downloadCsv(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
   a.href=url; a.download=`garmin_runs_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function downloadJson(){
+  const json=JSON.stringify(view(),null,2);
+  const blob=new Blob([json],{type:"application/json;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=`garmin_runs_${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
 }
