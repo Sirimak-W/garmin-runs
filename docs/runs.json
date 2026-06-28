@@ -1902,5 +1902,33 @@
     "elevation_gain_m": 0,
     "calories": 467.0,
     "activity_name": "Treadmill Running"
+  },
+  {
+    "date": "2026-06-28",
+    "distance_km": 7.03,
+    "duration_min": 51.82,
+    "pace_min_km": 7.372,
+    "avg_hr": 152.0,
+    "max_hr": 174.0,
+    "hr_z1_pct": 11.4,
+    "hr_z2_pct": 30.0,
+    "hr_z3_pct": 51.8,
+    "hr_z4_pct": 6.8,
+    "hr_z5_pct": 0.0,
+    "avg_cadence": 168.0,
+    "max_cadence": 190.0,
+    "vo2max": null,
+    "aerobic_te": 3.6,
+    "anaerobic_te": 0.0,
+    "avg_power": 222.0,
+    "max_power": 305.0,
+    "avg_speed_kmh": 8.14,
+    "max_speed_kmh": 10.88,
+    "stride_length_cm": 80.0,
+    "ground_contact_ms": 283.0,
+    "vertical_oscillation_cm": 7.2,
+    "elevation_gain_m": 0,
+    "calories": 475.0,
+    "activity_name": "Treadmill Running"
   }
 ]
