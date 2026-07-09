@@ -1,5 +1,4 @@
 date,distance_km,duration_min,pace_min_km,avg_hr,max_hr,hr_z1_pct,hr_z2_pct,hr_z3_pct,hr_z4_pct,hr_z5_pct,avg_cadence,max_cadence,vo2max,aerobic_te,anaerobic_te,avg_power,max_power,avg_speed_kmh,max_speed_kmh,stride_length_cm,ground_contact_ms,vertical_oscillation_cm,elevation_gain_m,calories,activity_name
-2026-03-10,3.71,115.82,31.245,137.0,169.0,50.1,26.3,23.6,0.0,0.0,42.0,210.0,,3.2,0.4,48.0,293.0,1.92,9.51,79.4,302.0,6.6,0.0,287.0,Treadmill Running
 2026-03-12,3.51,31.18,8.892,142.0,169.0,40.2,42.9,16.9,0.0,0.0,143.0,240.0,,3.3,0.0,178.0,268.0,6.75,8.97,78.3,282.0,6.8,0.0,253.0,Treadmill Running
 2026-03-13,5.02,43.9,8.744,144.0,169.0,31.9,52.2,15.9,0.0,0.0,147.0,178.0,,3.4,0.0,189.0,258.0,6.86,8.77,77.9,291.0,7.2,0.0,356.0,Treadmill Running
 2026-03-13,5.03,48.9,9.719,137.0,169.0,55.3,27.4,17.3,0.0,0.0,134.0,174.0,,3.3,0.0,157.0,259.0,6.17,8.36,76.8,285.0,6.5,0.0,352.0,Treadmill Running
