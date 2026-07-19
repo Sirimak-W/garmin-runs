@@ -1986,5 +1986,33 @@
     "elevation_gain_m": 9.0,
     "calories": 993.0,
     "activity_name": "Chatuchak Running"
+  },
+  {
+    "date": "2026-07-19",
+    "distance_km": 5.03,
+    "duration_min": 40.79,
+    "pace_min_km": 8.116,
+    "avg_hr": 142.0,
+    "max_hr": 155.0,
+    "hr_z1_pct": 26.8,
+    "hr_z2_pct": 73.2,
+    "hr_z3_pct": 0.0,
+    "hr_z4_pct": 0.0,
+    "hr_z5_pct": 0.0,
+    "avg_cadence": 159.0,
+    "max_cadence": 179.0,
+    "vo2max": null,
+    "aerobic_te": 3.0,
+    "anaerobic_te": 0.0,
+    "avg_power": 205.0,
+    "max_power": 242.0,
+    "avg_speed_kmh": 7.39,
+    "max_speed_kmh": 8.46,
+    "stride_length_cm": 77.5,
+    "ground_contact_ms": 287.0,
+    "vertical_oscillation_cm": 7.5,
+    "elevation_gain_m": 0,
+    "calories": 339.0,
+    "activity_name": "Treadmill Running"
   }
 ]
