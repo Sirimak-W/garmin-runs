@@ -1,5 +1,4 @@
 date,distance_km,duration_min,pace_min_km,avg_hr,max_hr,hr_z1_pct,hr_z2_pct,hr_z3_pct,hr_z4_pct,hr_z5_pct,avg_cadence,max_cadence,vo2max,aerobic_te,anaerobic_te,avg_power,max_power,avg_speed_kmh,max_speed_kmh,stride_length_cm,ground_contact_ms,vertical_oscillation_cm,elevation_gain_m,calories,activity_name
-2026-04-16,5.03,45.98,9.147,140.0,165.0,27.5,72.5,0.0,0.0,0.0,140.0,177.0,,3.6,0.0,176.0,269.0,6.56,9.24,78.1,290.0,7.0,0.0,356.0,Treadmill Running
 2026-04-17,5.04,63.05,12.523,141.0,171.0,39.9,42.8,17.3,0.0,0.0,113.0,176.0,,3.4,0.0,118.0,259.0,4.79,8.73,76.2,289.0,6.3,0.0,472.0,Treadmill Running
 2026-04-18,7.02,68.26,9.722,149.0,179.0,44.9,35.4,19.5,0.1,0.0,136.0,177.0,,4.2,0.9,158.0,264.0,6.17,8.67,76.5,285.0,6.6,0.0,555.0,Treadmill Running
 2026-04-19,6.07,57.77,9.514,160.0,180.0,29.8,34.7,31.1,4.4,0.0,149.0,185.0,38.0,3.4,0.4,180.0,313.0,6.31,10.28,69.7,286.0,6.7,4.0,442.0,Khlong Toei Running
