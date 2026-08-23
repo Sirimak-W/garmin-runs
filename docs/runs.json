@@ -2462,5 +2462,33 @@
     "elevation_gain_m": 1.0,
     "calories": 139.0,
     "activity_name": "Pathum Wan Running"
+  },
+  {
+    "date": "2026-08-23",
+    "distance_km": 5.02,
+    "duration_min": 41.22,
+    "pace_min_km": 8.211,
+    "avg_hr": 142.0,
+    "max_hr": 163.0,
+    "hr_z1_pct": 30.5,
+    "hr_z2_pct": 57.2,
+    "hr_z3_pct": 12.2,
+    "hr_z4_pct": 0.0,
+    "hr_z5_pct": 0.0,
+    "avg_cadence": 165.0,
+    "max_cadence": 225.0,
+    "vo2max": null,
+    "aerobic_te": 3.0,
+    "anaerobic_te": 0.0,
+    "avg_power": 205.0,
+    "max_power": 311.0,
+    "avg_speed_kmh": 7.31,
+    "max_speed_kmh": 10.71,
+    "stride_length_cm": 77.8,
+    "ground_contact_ms": 274.0,
+    "vertical_oscillation_cm": 7.2,
+    "elevation_gain_m": 0,
+    "calories": 335.0,
+    "activity_name": "Treadmill Running"
   }
 ]
