@@ -1,5 +1,4 @@
 date,distance_km,duration_min,pace_min_km,avg_hr,max_hr,hr_z1_pct,hr_z2_pct,hr_z3_pct,hr_z4_pct,hr_z5_pct,avg_cadence,max_cadence,vo2max,aerobic_te,anaerobic_te,avg_power,max_power,avg_speed_kmh,max_speed_kmh,stride_length_cm,ground_contact_ms,vertical_oscillation_cm,elevation_gain_m,calories,activity_name
-2026-04-30,5.02,42.83,8.528,139.0,161.0,66.3,33.7,0.0,0.0,0.0,151.0,176.0,,3.0,0.0,195.0,307.0,7.03,9.77,77.8,305.0,7.2,0.0,312.0,Treadmill Running
 2026-05-07,3.04,27.76,9.142,138.0,161.0,63.8,36.2,0.0,0.0,0.0,144.0,210.0,,2.4,0.0,173.0,324.0,6.56,10.38,76.0,323.0,6.6,0.0,200.0,Treadmill Running
 2026-05-13,2.39,35.7,14.957,101.0,141.0,,,,,,91.0,200.0,,1.0,0.1,91.0,354.0,4.01,11.42,78.8,396.0,5.9,7.0,160.0,Minami Ward Running
 2026-05-14,2.63,24.51,9.311,138.0,159.0,83.2,16.8,0.0,0.0,0.0,151.0,190.0,38.0,2.4,0.0,188.0,295.0,6.44,9.0,69.9,278.0,6.8,13.0,192.0,Minami Ward Running
