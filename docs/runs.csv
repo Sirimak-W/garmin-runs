@@ -1,5 +1,4 @@
 date,distance_km,duration_min,pace_min_km,avg_hr,max_hr,hr_z1_pct,hr_z2_pct,hr_z3_pct,hr_z4_pct,hr_z5_pct,avg_cadence,max_cadence,vo2max,aerobic_te,anaerobic_te,avg_power,max_power,avg_speed_kmh,max_speed_kmh,stride_length_cm,ground_contact_ms,vertical_oscillation_cm,elevation_gain_m,calories,activity_name
-2026-06-14,8.02,62.39,7.775,166.0,188.0,6.3,20.1,27.1,46.0,0.5,168.0,196.0,41.0,3.6,0.0,210.0,283.0,7.72,9.47,74.6,270.0,6.8,6.0,601.0,Chatuchak Running
 2026-06-15,5.09,41.63,8.172,162.0,178.0,6.3,22.9,27.8,43.0,0.0,176.0,191.0,41.0,2.5,0.0,213.0,279.0,7.34,9.1,69.2,278.0,6.9,1.0,351.0,Pathum Wan Running
 2026-06-17,5.02,39.26,7.816,132.0,152.0,65.9,34.1,0.0,0.0,0.0,155.0,188.0,,2.3,0.0,205.0,317.0,7.68,10.98,81.7,276.0,7.2,0.0,282.0,Treadmill Running
 2026-06-19,4.01,32.11,7.998,140.0,164.0,37.9,50.7,11.4,0.0,0.0,155.0,240.0,,2.9,0.1,199.0,395.0,7.5,13.6,81.5,266.0,7.0,0.0,260.0,Treadmill Running
